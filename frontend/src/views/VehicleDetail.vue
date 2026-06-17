@@ -217,30 +217,30 @@ function goBack() {
   router.push('/')
 }
 
-async function loadVehicle() {
+async function loadVehicle(silent = false) {
   try {
-    vehicle.value = await getVehicleById(vehicleId.value)
+    vehicle.value = await getVehicleById(vehicleId.value, silent)
   } catch (e) {
     console.error('加载车辆信息失败', e)
   }
 }
 
-async function loadRecords() {
+async function loadRecords(silent = false) {
   try {
-    records.value = await getTransportRecords(vehicleId.value)
+    records.value = await getTransportRecords(vehicleId.value, silent)
     if (records.value.length > 0) {
       latestRecord.value = records.value[0]
     } else {
-      latestRecord.value = await getLatestRecord(vehicleId.value)
+      latestRecord.value = await getLatestRecord(vehicleId.value, silent)
     }
   } catch (e) {
     console.error('加载运输记录失败', e)
   }
 }
 
-async function loadAlerts() {
+async function loadAlerts(silent = false) {
   try {
-    vehicleAlerts.value = await getAlertsByVehicle(vehicleId.value)
+    vehicleAlerts.value = await getAlertsByVehicle(vehicleId.value, silent)
   } catch (e) {
     console.error('加载预警记录失败', e)
   }
@@ -248,7 +248,7 @@ async function loadAlerts() {
 
 async function refreshAll() {
   loading.value = true
-  await Promise.all([loadVehicle(), loadRecords(), loadAlerts()])
+  await Promise.all([loadVehicle(false), loadRecords(false), loadAlerts(false)])
   loading.value = false
   lastRefresh.value = formatDateTime(new Date())
   nextTick(() => initMap())
@@ -299,9 +299,9 @@ function initMap() {
 onMounted(async () => {
   await refreshAll()
   refreshTimer = setInterval(async () => {
-    await loadVehicle()
-    await loadRecords()
-    await loadAlerts()
+    await loadVehicle(true)
+    await loadRecords(true)
+    await loadAlerts(true)
     lastRefresh.value = formatDateTime(new Date())
     nextTick(() => initMap())
   }, 10000)

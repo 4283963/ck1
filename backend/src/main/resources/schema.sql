@@ -61,3 +61,11 @@ CREATE TABLE IF NOT EXISTS alerts (
 
 CREATE INDEX IF NOT EXISTS idx_alerts_vehicle_id ON alerts(vehicle_id);
 CREATE INDEX IF NOT EXISTS idx_alerts_is_resolved ON alerts(is_resolved);
+
+-- 关键：部分唯一索引 - 同一车辆同类型预警只能有一条未处理的
+-- 这是防止并发重复创建预警的最终保障（数据库层面）
+DROP INDEX IF EXISTS uk_alerts_unresolved_unique;
+CREATE UNIQUE INDEX IF NOT EXISTS uk_alerts_unresolved_unique
+    ON alerts (vehicle_id, alert_type)
+    WHERE is_resolved = FALSE;
+

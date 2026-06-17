@@ -1,5 +1,9 @@
 import request from '../utils/request'
 
+function buildSilentConfig(silent) {
+  return silent ? { silent: true } : {}
+}
+
 export function reportTransportData(data) {
   return request({
     url: '/transport/report',
@@ -8,31 +12,35 @@ export function reportTransportData(data) {
   })
 }
 
-export function getTransportRecords(vehicleId) {
+export function getTransportRecords(vehicleId, silent = false) {
   return request({
     url: `/transport/vehicle/${vehicleId}`,
-    method: 'get'
+    method: 'get',
+    ...buildSilentConfig(silent)
   })
 }
 
-export function getLatestRecord(vehicleId) {
+export function getLatestRecord(vehicleId, silent = false) {
   return request({
     url: `/transport/vehicle/${vehicleId}/latest`,
-    method: 'get'
+    method: 'get',
+    ...buildSilentConfig(silent)
   })
 }
 
-export function getAllVehicles() {
+export function getAllVehicles(silent = false) {
   return request({
     url: '/vehicles',
-    method: 'get'
+    method: 'get',
+    ...buildSilentConfig(silent)
   })
 }
 
-export function getVehicleById(id) {
+export function getVehicleById(id, silent = false) {
   return request({
     url: `/vehicles/${id}`,
-    method: 'get'
+    method: 'get',
+    ...buildSilentConfig(silent)
   })
 }
 
@@ -59,17 +67,27 @@ export function deleteVehicle(id) {
   })
 }
 
-export function getAllAlerts() {
+export function getAllAlerts(silent = false) {
   return request({
     url: '/alerts',
-    method: 'get'
+    method: 'get',
+    ...buildSilentConfig(silent)
   })
 }
 
-export function getUnresolvedAlerts() {
+export function getUnresolvedAlerts(silent = false) {
   return request({
     url: '/alerts/unresolved',
-    method: 'get'
+    method: 'get',
+    ...buildSilentConfig(silent)
+  })
+}
+
+export function getAlertsByVehicle(vehicleId, silent = false) {
+  return request({
+    url: `/alerts/vehicle/${vehicleId}`,
+    method: 'get',
+    ...buildSilentConfig(silent)
   })
 }
 

@@ -227,18 +227,18 @@ function hasActiveAlert(vehicleId) {
   return unresolvedAlerts.value.some(a => a.vehicleId === vehicleId && !a.isResolved)
 }
 
-async function fetchVehicles() {
+async function fetchVehicles(silent = false) {
   try {
-    vehicles.value = await getAllVehicles()
+    vehicles.value = await getAllVehicles(silent)
   } catch (e) {
     console.error('加载车辆列表失败', e)
   }
 }
 
-async function fetchAlerts() {
+async function fetchAlerts(silent = false) {
   try {
     const beforeIds = new Set(unresolvedAlerts.value.map(a => a.id))
-    unresolvedAlerts.value = await getUnresolvedAlerts()
+    unresolvedAlerts.value = await getUnresolvedAlerts(silent)
 
     for (const alert of unresolvedAlerts.value) {
       if (!beforeIds.has(alert.id) && !alertedIds.value.has(alert.id)) {
@@ -255,8 +255,8 @@ async function fetchAlerts() {
 }
 
 function refreshData() {
-  fetchVehicles()
-  fetchAlerts()
+  fetchVehicles(false)
+  fetchAlerts(false)
   ElMessage.success('数据已刷新')
 }
 
@@ -296,12 +296,12 @@ async function handleResolveAlert(alert) {
 
 onMounted(() => {
   updateTime()
-  fetchVehicles()
-  fetchAlerts()
+  fetchVehicles(false)
+  fetchAlerts(false)
 
   timeTimer = setInterval(updateTime, 1000)
-  dataTimer = setInterval(fetchVehicles, 10000)
-  alertCheckTimer = setInterval(fetchAlerts, 5000)
+  dataTimer = setInterval(() => fetchVehicles(true), 10000)
+  alertCheckTimer = setInterval(() => fetchAlerts(true), 5000)
 })
 
 onUnmounted(() => {
