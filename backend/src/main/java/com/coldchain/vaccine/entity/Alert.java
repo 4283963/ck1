@@ -56,6 +56,18 @@ public class Alert {
     @Column(name = "create_time")
     private LocalDateTime createTime;
 
+    @Column(name = "is_notified", nullable = false)
+    private Boolean isNotified;
+
+    @Column(name = "notify_time")
+    private LocalDateTime notifyTime;
+
+    @Column(name = "notify_result", length = 500)
+    private String notifyResult;
+
+    @Column(name = "notify_by")
+    private String notifyBy;
+
     @PrePersist
     protected void onCreate() {
         if (createTime == null) {
@@ -66,6 +78,9 @@ public class Alert {
         }
         if (isResolved == null) {
             isResolved = false;
+        }
+        if (isNotified == null) {
+            isNotified = false;
         }
     }
 }

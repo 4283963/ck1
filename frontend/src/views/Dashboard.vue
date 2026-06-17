@@ -7,6 +7,7 @@
       </div>
       <div class="header-right">
         <span class="current-time">{{ currentTime }}</span>
+        <el-button :icon="Setting" @click="goToConfig">系统配置</el-button>
         <el-button type="primary" :icon="Refresh" @click="refreshData">刷新数据</el-button>
       </div>
     </header>
@@ -125,6 +126,22 @@
               <el-tag type="danger" effect="dark" size="small">
                 {{ alert.alertType === 'DATA_DISTORTION' ? '数据失真预警' : alert.alertType }}
               </el-tag>
+              <el-tag
+                v-if="alert.isNotified"
+                type="success"
+                size="small"
+                effect="light">
+                <el-icon><CircleCheck /></el-icon>
+                已通知
+              </el-tag>
+              <el-tag
+                v-else
+                type="warning"
+                size="small"
+                effect="light">
+                <el-icon><Promotion /></el-icon>
+                待通知
+              </el-tag>
               <span class="alert-time">{{ formatTime(alert.alertTime) }}</span>
             </div>
             <div class="alert-plate">{{ alert.plateNumber }}</div>
@@ -134,13 +151,24 @@
               <span v-if="alert.latitude && alert.longitude">
                 位置: {{ alert.latitude?.toFixed(4) }}, {{ alert.longitude?.toFixed(4) }}
               </span>
-              <el-button
-                type="success"
-                size="small"
-                link
-                @click.stop="handleResolveAlert(alert)">
-                标记已处理
-              </el-button>
+              <div class="alert-actions">
+                <el-button
+                  type="warning"
+                  size="small"
+                  link
+                  :disabled="alert.isNotified"
+                  @click.stop="handleForwardWechat(alert)">
+                  <el-icon><ChatDotRound /></el-icon>
+                  {{ alert.isNotified ? '已通知' : '转发微信' }}
+                </el-button>
+                <el-button
+                  type="success"
+                  size="small"
+                  link
+                  @click.stop="handleResolveAlert(alert)">
+                  标记已处理
+                </el-button>
+              </div>
             </div>
           </div>
         </div>
@@ -173,6 +201,14 @@
       </div>
       <template #footer>
         <el-button @click="showAlertModal = false">稍后处理</el-button>
+        <el-button
+          type="warning"
+          :loading="notifying"
+          :disabled="currentAlert?.isNotified"
+          @click="handleForwardWechat(currentAlert)">
+          <el-icon><ChatDotRound /></el-icon>
+          {{ currentAlert?.isNotified ? '已通知' : '转发微信' }}
+        </el-button>
         <el-button type="primary" @click="viewVehicleDetail">查看车次详情</el-button>
         <el-button type="success" @click="handleResolveAlert(currentAlert)">标记已处理</el-button>
       </template>
@@ -184,8 +220,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Refresh, Van, Warning, CircleCheck, DataAnalysis, List, Right, Bell, WarningFilled } from '@element-plus/icons-vue'
-import { getAllVehicles, getUnresolvedAlerts, resolveAlert } from '../api'
+import { Refresh, Van, Warning, CircleCheck, DataAnalysis, List, Right, Bell, WarningFilled, Setting, ChatDotRound, Promotion } from '@element-plus/icons-vue'
+import { getAllVehicles, getUnresolvedAlerts, resolveAlert, sendWechatAlert } from '../api'
 
 const router = useRouter()
 
@@ -195,6 +231,7 @@ const currentTime = ref('')
 const showAlertModal = ref(false)
 const currentAlert = ref(null)
 const alertedIds = ref(new Set())
+const notifying = ref(false)
 
 let timeTimer = null
 let dataTimer = null
@@ -268,10 +305,40 @@ function goToDetail(id) {
   router.push(`/vehicle/${id}`)
 }
 
+function goToConfig() {
+  router.push('/config')
+}
+
 function viewVehicleDetail() {
   showAlertModal.value = false
   if (currentAlert.value) {
     goToDetail(currentAlert.value.vehicleId)
+  }
+}
+
+async function handleForwardWechat(alert) {
+  if (!alert) return
+  try {
+    await ElMessageBox.confirm(
+      `确认将车牌号【${alert.plateNumber}】的数据失真预警转发到微信？`,
+      '转发确认',
+      { type: 'info', confirmButtonText: '立即转发', cancelButtonText: '取消' }
+    )
+    notifying.value = true
+    const res = await sendWechatAlert(alert.id, '大屏操作员')
+    if (res && res.success) {
+      ElMessage.success('微信通知已发送')
+      showAlertModal.value = false
+      fetchAlerts()
+    } else {
+      ElMessage.error(res?.message || '发送失败')
+    }
+  } catch (e) {
+    if (e !== 'cancel') {
+      console.error(e)
+    }
+  } finally {
+    notifying.value = false
   }
 }
 
@@ -523,6 +590,15 @@ onUnmounted(() => {
   font-size: 12px;
   color: #8aa0bd;
   gap: 10px;
+}
+
+.alert-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.alert-actions .el-button {
+  padding: 0 4px;
 }
 
 :deep(.el-table) {

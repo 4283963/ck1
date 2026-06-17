@@ -55,6 +55,10 @@ CREATE TABLE IF NOT EXISTS alerts (
     is_resolved BOOLEAN NOT NULL DEFAULT FALSE,
     resolved_time TIMESTAMP,
     resolved_by VARCHAR(50),
+    is_notified BOOLEAN NOT NULL DEFAULT FALSE,
+    notify_time TIMESTAMP,
+    notify_result VARCHAR(500),
+    notify_by VARCHAR(50),
     alert_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -68,4 +72,14 @@ DROP INDEX IF EXISTS uk_alerts_unresolved_unique;
 CREATE UNIQUE INDEX IF NOT EXISTS uk_alerts_unresolved_unique
     ON alerts (vehicle_id, alert_type)
     WHERE is_resolved = FALSE;
+
+-- 系统配置表
+CREATE TABLE IF NOT EXISTS system_configs (
+    id BIGSERIAL PRIMARY KEY,
+    config_key VARCHAR(100) NOT NULL UNIQUE,
+    config_value VARCHAR(1000),
+    description VARCHAR(200),
+    update_time TIMESTAMP,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 

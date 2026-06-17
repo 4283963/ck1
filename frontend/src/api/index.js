@@ -98,3 +98,35 @@ export function resolveAlert(id, resolvedBy = '系统管理员') {
     data: { resolvedBy }
   })
 }
+
+export function getWechatConfig(silent = false) {
+  return request({
+    url: '/config/wechat',
+    method: 'get',
+    ...buildSilentConfig(silent)
+  })
+}
+
+export function saveWechatConfig(data) {
+  return request({
+    url: '/config/wechat',
+    method: 'put',
+    data
+  })
+}
+
+export function testWechatConfig(data) {
+  return request({
+    url: '/config/wechat/test',
+    method: 'post',
+    data
+  })
+}
+
+export function sendWechatAlert(alertId, operator) {
+  return request({
+    url: `/notifications/wechat/alert/${alertId}`,
+    method: 'post',
+    data: { operator }
+  })
+}

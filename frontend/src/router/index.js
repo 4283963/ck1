@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Dashboard from '../views/Dashboard.vue'
 import VehicleDetail from '../views/VehicleDetail.vue'
+import SystemConfig from '../views/SystemConfig.vue'
 
 const routes = [
   {
@@ -14,6 +15,12 @@ const routes = [
     name: 'VehicleDetail',
     component: VehicleDetail,
     meta: { title: '车次详情' }
+  },
+  {
+    path: '/config',
+    name: 'SystemConfig',
+    component: SystemConfig,
+    meta: { title: '系统配置' }
   }
 ]
 
